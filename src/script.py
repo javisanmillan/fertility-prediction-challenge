@@ -44,31 +44,61 @@ args = parser.parse_args()
  
 
 def predict_outcomes(df):
-    """Process the input data and write the predictions."""
+   keepcols = ['leeftijd2019','aantalki2019','partner2019','burgstat2019',
+            'woonvorm2019','woning2019','belbezig2019',
+            'oplmet2019','sted2019','brutohh_f2019','geslacht',
+            'ch19l004','ch19l018', 'ch19l021', 'ch19l022', 'ch19l126','ch19l133','ch19l159','ch19l160', 'ch19l161','ch19l162',
+            'ch19l163', 'ch19l229','cp19k010','cp19k026','cv19k012','cv19k053','cv19k101','cv19k125','cv19k126','cv19k130',
+            'cv19k140','cr19l089','cr19l134','cs19l079','cs19l105','cs19l436','cs19l435',
+            'cf19l014','cf19l025','cf14g034','cf19l136','cf19l131','cf19l129','cf19l130','cf19l133','cf19l134'
+            ,'cf19l183','cf19l198']
 
-    # The predict_outcomes function accepts a Pandas DataFrame as an argument
-    # and returns a new DataFrame with two columns: nomem_encr and
-    # prediction. The nomem_encr column in the new DataFrame replicates the
-    # corresponding column from the input DataFrame. The prediction
-    # column contains predictions for each corresponding nomem_encr. Each
-    # prediction is represented as a binary value: '0' indicates that the
-    # individual did not have a child during 2020-2022, while '1' implies that
-    # they did.
+data = data.loc[:, keepcols]
 
-    # Keep 
-    keepcols = ['burgstat2019', 'leeftijd2019', 'woonvorm2019', 'oplmet2019', 'aantalki2019']
-    nomem_encr = df["nomem_encr"]
-    
-    df = df.loc[:, keepcols]
-    
-    # Load your trained model from the models directory
-    model_path = os.path.join(os.path.dirname(__file__), "..", "models", "model.joblib")
-    model = load(model_path)
+categorical_transformer = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='most_frequent')),
+    ('encoder', OneHotEncoder(handle_unknown='infrequent_if_exist'))])
+
+numerical_transformer = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='mean')),
+    ('scaler', StandardScaler())])
+
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', numerical_transformer, selector(dtype_exclude=object)(data)),
+        ('cat', categorical_transformer, selector(dtype_include=object)(data))])
+
+model = Pipeline([
+    ("preprocess", preprocessor),
+    ("classifier", RandomForestClassifier())  # Updated classifier
+])
+
+parameters = [
+    {
+        'classifier': [RandomForestClassifier()],  # Updated classifier
+        'classifier__n_estimators': [100, 200, 300],  # Example parameter options
+        'classifier__max_depth': [None, 5, 10],  # Example parameter options
+    },
+]
+
+grid_search = GridSearchCV(model, parameters, cv=5, n_jobs=-1, scoring="f1", verbose=3)
+grid_search.fit(X_train, y_train)
+
+best_model = grid_search.best_estimator_
+
+# Save models
+models_path = os.path.join("..", "models")
+os.makedirs(models_path, exist_ok=True)
+
+# 
+dump(best_model, os.path.join(models_path, "random_forest2.joblib"))
 
     # Use your trained model for prediction
-    predictions = model.predict(df)
+    predictions = model.predict(data)
     # Return the result as a Pandas DataFrame with the columns "nomem_encr" and "prediction"
     return pd.concat([nomem_encr, pd.Series(predictions, name="prediction")], axis=1)
+
+
 
 
 def predict(input_path, output):
