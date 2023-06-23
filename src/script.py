@@ -40,7 +40,7 @@ score_parser.add_argument("ground_truth_path", help="Path to ground truth outcom
 score_parser.add_argument("--output", help="Path to evaluation score output CSV file.")
 
 args = parser.parse_args()
-
+ 
 
 def predict_outcomes(df):
     """Process the input data and write the predictions."""
