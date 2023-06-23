@@ -18,7 +18,7 @@ An example for the provided test is:
 
 python script.py data/test_data_liss_2_subjects.csv
 """
-
+# this is just a comment
 import os
 import sys
 import argparse
