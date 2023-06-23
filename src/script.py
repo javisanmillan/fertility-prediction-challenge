@@ -93,10 +93,10 @@ os.makedirs(models_path, exist_ok=True)
 # 
 dump(best_model, os.path.join(models_path, "random_forest2.joblib"))
 
-    # Use your trained model for prediction
-    predictions = model.predict(data)
-    # Return the result as a Pandas DataFrame with the columns "nomem_encr" and "prediction"
-    return pd.concat([nomem_encr, pd.Series(predictions, name="prediction")], axis=1)
+# Use your trained model for prediction
+predictions = model.predict(data)
+# Return the result as a Pandas DataFrame with the columns "nomem_encr" and "prediction"
+return pd.concat([nomem_encr, pd.Series(predictions, name="prediction")], axis=1)
 
 
 
