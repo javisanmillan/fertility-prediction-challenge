@@ -25,6 +25,7 @@ import argparse
 import pandas as pd
 from joblib import load
 
+
 parser = argparse.ArgumentParser(description="Process and score data.")
 subparsers = parser.add_subparsers(dest="command")
 
